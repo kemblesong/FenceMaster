@@ -4,8 +4,7 @@
 * @author Nick
 */
 
-public class Hex 
-{
+public class Hex {
 	private int x, y;
 	private char colour;
 	private Board board;
@@ -15,17 +14,14 @@ public class Hex
 	* neighbour is at hexes[0] and the western one is
 	* at hexes[5].
 	*/
-	public Hex[] getAdjacent()
-	{
+	public Hex[] getAdjacent() {
 		Hex[] hexes = new Hex[6];
 		int adjx = this.x, adjy = this.y;
 		int i;
-		for (i=0;i<6;i++)
-		{
+		for (i=0;i<6;i++) {
 		/* Choose a direction relative to the base hex to
 		  grab another hex from. */
-			switch (i) 
-			{
+			switch (i) {
 				case 0: adjx -= 1;
 						adjy -= 1;
 						break;
@@ -43,13 +39,17 @@ public class Hex
 						break;
 			}
 			// If there exists a hex at the target location, store it.
-			if(board.rows[adjx][adjy] != null)
-				hexes[i] = board.rows[adjx][adjy];
+			try {
+				hexes[i] = board.rows[adjy][adjx];
+			}
+			catch (ArrayIndexOutOfBoundsException e) {
+				// Do nothing. Man, there has to be a more elegant way to do this.
+			}
 		}
 		return hexes;
 	}
 	
-	public Hex(int x, int y, char colour, Board board) 
+	public Hex(int y, int x, char colour, Board board) 
 	{
 		this.x = x;
 		this.y = y;
@@ -57,6 +57,16 @@ public class Hex
 		this.board = board;
 	}
 
+	/**
+	 * The method used to convert the hex to a string when it's put into
+	 * a print() method or similar. Currently not working, will debug later.
+	 */
+	public String toString() {
+		String str = " ";
+		str.replace(' ', this.getColour());
+		return str;
+	}
+	
 	public char getColour() {
 		return colour;
 	}
