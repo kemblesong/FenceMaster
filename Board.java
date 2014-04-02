@@ -15,41 +15,41 @@ public class Board {
        hexagon pattern.
      */
 
-	Hex[][] rows;
+    Hex[][] rows;
     int dimension;
     int numHexes;
 
     // Just to test if board was successfully made
-	public static void main(String[] args) {
-		int n = 4;
+    public static void main(String[] args) {
+        int n = 4;
         Board thisBoard = new Board(n);
-		for (int i=0; i<thisBoard.rows.length; i++) {
+        for (int i=0; i<thisBoard.rows.length; i++) {
             for (int j=0; j<thisBoard.rows[i].length; j++) {
                 System.out.printf("%c ", thisBoard.rows[i][j].getColour());
             }
             System.out.println();
         }
-		
-		thisBoard.rows[0][0].setColour('B');
-		System.out.println(thisBoard.rows[1][0].getAdjacent()[1].getColour());
-	}
+
+        thisBoard.rows[0][0].setColour('B');
+        System.out.println(thisBoard.rows[1][0].getAdjacent()[1].getColour());
+    }
 
     // Constructor for making a Board with n rows
     // Max length of any row is 2*n-1
-	public Board(int n) {
+    public Board(int n) {
         dimension = n;
-		rows = new Hex[2*n-1][];
+        rows = new Hex[2*n-1][];
         numHexes = 3*n*n-3*n+1;
-		int i, j;
-		for (i=0; i<n; i++) {
-			rows[i] = new Hex[n+i];
+        int i, j;
+        for (i=0; i<n; i++) {
+            rows[i] = new Hex[n+i];
             rows[2*n-(i+2)] = new Hex[n+i];
             for (j=0; j < this.rows[i].length; j++) {
-            	rows[i][j] = new Hex(i, j, '-', this);
-            	rows[2*n-(i+2)][j] = new Hex(i, j, '-', this);
+                rows[i][j] = new Hex(i, j, '-', this);
+                rows[2*n-(i+2)][j] = new Hex(i, j, '-', this);
             }
-		}
-	}
+        }
+    }
 
     // Method for filling in a boardstate into an empty board
     public void fillBoard(String file) {
@@ -193,10 +193,10 @@ public class Board {
      */
     public boolean isCorner(Hex hex, int boardDimension) {
         return (hex.x == 0 && hex.y == 0) ||
-               (hex.x == boardDimension - 1 && hex.y == 0) ||
-               (hex.x == 0 && hex.y == boardDimension - 1) ||
-               (hex.x == 2 * boardDimension - 2 && hex.y == boardDimension - 1) ||
-               (hex.x == 0 && hex.y == 2 * boardDimension - 2) ||
-               (hex.x == boardDimension - 1 && hex.y == 2 * boardDimension - 2);
+                (hex.x == boardDimension - 1 && hex.y == 0) ||
+                (hex.x == 0 && hex.y == boardDimension - 1) ||
+                (hex.x == 2 * boardDimension - 2 && hex.y == boardDimension - 1) ||
+                (hex.x == 0 && hex.y == 2 * boardDimension - 2) ||
+                (hex.x == boardDimension - 1 && hex.y == 2 * boardDimension - 2);
     }
 }
