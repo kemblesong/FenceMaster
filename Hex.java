@@ -5,9 +5,9 @@
 */
 
 public class Hex {
-	private int x, y;
-	private char colour;
-	private Board board;
+	int x, y;
+	char colour;
+	Board board;
 	
 	/** Fill an array with all adjacent hexes. Moves
 	* clockwise from top left, so that the northwestern
