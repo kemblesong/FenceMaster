@@ -153,7 +153,7 @@ public class Board {
         while (queue.size() != 0) {
             currentHex = queue.poll();
             neighbours = currentHex.getAdjacent();
-            if (trace(currentHex, neighbours, queue, colour, board, 0) >= 3) {
+            if (trace(currentHex, neighbours, colour, board, 0) >= 3) {
                 System.out.printf("%c\nTripod", colour);
                 break;
             }
@@ -164,7 +164,7 @@ public class Board {
      * Method for tracing linked hexes of the same colour until an edge is hit or the link is broken.
      * Depth first search.
      */
-    public int trace(Hex origin, Hex[] neighbours, PriorityQueue<Hex> queue, char colour, Board board, int count) {
+    public int trace(Hex origin, Hex[] neighbours, char colour, Board board, int count) {
         int i;
         Hex currentHex;
         for (i=0; i<neighbours.length; i++) {
@@ -172,7 +172,7 @@ public class Board {
             if (currentHex != null) {
                 if (currentHex.getColour() == colour) {
                     // Continue tracing along same coloured adjacent hexes.
-                    count = trace(currentHex, currentHex.getAdjacent(), queue, colour, board, count);
+                    count = trace(currentHex, currentHex.getAdjacent(), colour, board, count);
                 }
                 // Not the same colour, move along.
             } else {
@@ -184,7 +184,6 @@ public class Board {
                 }
             }
         }
-        //queue.remove(origin);
         return 0;
     }
 
