@@ -33,8 +33,12 @@ public class Board {
         thisBoard.testWin(thisBoard);
     }
 
-    // Constructor for making a Board with n rows
-    // Max length of any row is 2*n-1
+    /**
+     * Constructor for making a Board with n rows
+     * Max length of any row is 2*n-1
+     * Max number of hexes is 3*n*n-3*n+1
+     */
+
     public Board(int n) {
         dimension = n;
         rows = new Hex[2*n-1][];
@@ -50,14 +54,17 @@ public class Board {
         }
     }
 
-    // Method for filling in a board state into an empty board
+    /**
+     * Method for filling in a board state into an empty board
+     */
+
     public static Board fillBoard() {
         Scanner input = new Scanner(System.in);
         Board newBoard = null;
         String token;
-        int i, j, n = 0;
+        int i, j;
         try {
-            newBoard = new Board(n = input.nextInt());
+            newBoard = new Board(input.nextInt());
         }
         catch (InputMismatchException e) {
             System.err.println("Error: Improperly formatted board in input - program halted.");
@@ -77,14 +84,27 @@ public class Board {
         return newBoard;
     }
 
-    // Method for checking if there is a winner
+    /**
+     * Method for checking if there is a winner
+     * Uses a switch statement to switch between the ten different possible board states based on winning positions.
+     *
+     */
     public void testWin(Board board) {
-        if (findLoop(board, 'B')) {
-            System.out.print("Black\nLoop");
-        } else {
-            System.out.print("Nope");
+
+        boolean draw = true;
+        int i, j;
+        for (i=0; i<board.rows.length; i++) {
+            for (j=0; j<board.rows[i].length; j++) {
+                if (board.rows[i][j].colour == '-') {
+                    draw = false;
+                }
+            }
         }
-/*
+
+        if (draw) {
+            System.out.print("Draw\nNil");
+        }
+
         int state=0;
 
         if (findLoop(board, 'B')) {
@@ -107,21 +127,21 @@ public class Board {
                 break;
             case 2: System.out.print("White\nLoop");
                 break;
-            case 3: System.out.print("Invalid board state.");
+            case 3: System.out.print("Invalid board state: multiple winners");
                 break;
             case 4: System.out.print("Black\nTripod");
                 break;
             case 5: System.out.print("Black\nBoth");
                 break;
-            case 6: System.out.print("Invalid board state.");
+            case 6: System.out.print("Invalid board state: multiple winners");
                 break;
             case 7: System.out.print("White\nTripod");
                 break;
-            case 8: System.out.print("Invalid board state.");
+            case 8: System.out.print("Invalid board state: multiple winners");
                 break;
             case 9: System.out.print("White\nBoth");
         }
-*/
+
     }
 
     /**
@@ -145,7 +165,7 @@ public class Board {
         while (queue.size() != 0) {
             currentHex = queue.poll();
             neighbours = currentHex.getAdjacent();
-            if (explore(currentHex, neighbours, queue)) {
+            if (explore(neighbours, queue)) {
                 return true;
             }
         }
@@ -155,9 +175,9 @@ public class Board {
     /**
      * Method for expanding nodes recursively until it either hits an edge returning false,
      * or finds itself surrounded by nodes not in the queue returning true.
-     * Breadth first search.
+     * Depth first search.
      */
-    public boolean explore(Hex origin, Hex[] neighbours, PriorityQueue<Hex> queue) {
+    public boolean explore(Hex[] neighbours, PriorityQueue<Hex> queue) {
 
         int i;
         Hex currentHex;
@@ -173,7 +193,9 @@ public class Board {
             // This means the hex is empty/opposite colour and non-edge, so expand it (recursive)
             else if (queue.contains(currentHex)) {
                 queue.remove(currentHex);
-                return explore(currentHex, currentHex.getAdjacent(), queue);
+                if (!explore(currentHex.getAdjacent(), queue)) {
+                    return false;
+                }
             }
             // Otherwise, right coloured hex or already visited. This is good.
 
@@ -190,9 +212,11 @@ public class Board {
     public boolean findTripod(Board board, char colour) {
         // For each hex that has three or more connecting hexes with same colour, add to queue.
         PriorityQueue<Hex> queue = new PriorityQueue<Hex>(board.numHexes);
+        PriorityQueue<Hex> visited = new PriorityQueue<Hex>(board.numHexes);
         int i, j, n, numAdj;
         Hex currentHex;
         Hex[] neighbours;
+
         for (i=0; i<board.rows.length; i++) {
             for (j=0; j<board.rows[i].length; j++) {
 
@@ -224,7 +248,7 @@ public class Board {
         while (queue.size() != 0) {
             currentHex = queue.poll();
             neighbours = currentHex.getAdjacent();
-            if (trace(currentHex, neighbours, colour, board, 0) >= 3) {
+            if (trace(currentHex, neighbours, colour, board, visited) >= 3) {
                 return true;
             }
         }
@@ -235,18 +259,27 @@ public class Board {
      * Method for tracing linked hexes of the same colour until an edge is hit or the link is broken.
      * Depth first search.
      */
-    public int trace(Hex origin, Hex[] neighbours, char colour, Board board, int count) {
+    public int trace(Hex origin, Hex[] neighbours, char colour, Board board, PriorityQueue<Hex> visited) {
         int i;
+        int count = 0;
         Hex currentHex;
+
         for (i=0; i<neighbours.length; i++) {
             currentHex = neighbours[i];
+
+            // Do the following if not at edge
             if (currentHex != null) {
-                if (currentHex.getColour() == colour) {
-                    // Continue tracing along same coloured adjacent hexes.
-                    count += trace(currentHex, currentHex.getAdjacent(), colour, board, count);
+                // Do the following if hex hasn't been visited
+                if (!visited.contains(currentHex)) {
+                    visited.add(currentHex);
+                    if (currentHex.getColour() == colour) {
+                        // Continue tracing along same coloured adjacent hexes.
+                        count += trace(currentHex, currentHex.getAdjacent(), colour, board, visited);
+                    }
                 }
                 // Not the same colour, move along.
-            } else {
+            }
+            else {
                 // We have hit an edge!
                 if (!isCorner(origin, board.dimension)) {
                     // Better yet, it's a non-corner edge!

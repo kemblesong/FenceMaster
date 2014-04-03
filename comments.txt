@@ -32,7 +32,7 @@ Pseudocode for loop detection of colour:
                 RETURN true
 
 Explanation of loop detection algorithm and its complexity:
-    Esentially, if we were asked to find a 'black' loop, we would look at all the white hexes and see if
+    Essentially, if we were asked to find a 'black' loop, we would look at all the white hexes and see if
     we can move along adjacent white hexes until we hit an edge. If we never hit an edge after expanding from
     a white hex, then we know that we are inside a black loop.
 
@@ -50,6 +50,8 @@ Pseudocode for tripod detection of colour:
                 TRACE it (recursive)
             OTHERWISE (We hit a non-colour non-edge)
                 Start over with next item in queue
+    IF count >= 3
+        We have a tripod
 
 Explanation of tripod detection algorithm and its complexity:
     We initially start at hexes with three or more adjacent hexes that have the same colour.
