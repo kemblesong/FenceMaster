@@ -77,19 +77,15 @@ public class Board {
 
         if (findLoop(board, 'b')) {
             state += 1;
-            //System.out.print("Black\nLoop");
         }
         if (findLoop(board, 'w')) {
             state += 2;
-            //System.out.print("White\nloop");
         }
         if (findTripod(board, 'b')) {
             state += 4;
-            //System.out.print("Black\nTripod");
         }
         if (findTripod(board, 'w')) {
             state += 7;
-            //System.out.print("White\nTripod");
         }
 
         switch(state) {
