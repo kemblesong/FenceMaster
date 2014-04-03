@@ -7,6 +7,8 @@
  * @author kemble
  */
 
+import java.util.InputMismatchException;
+import java.util.Scanner;
 import java.util.PriorityQueue;
 
 public class Board {
@@ -21,17 +23,14 @@ public class Board {
 
     // Just to test if board was successfully made
     public static void main(String[] args) {
-        int n = 4;
-        Board thisBoard = new Board(n);
+        Board thisBoard = fillBoard();
         for (int i=0; i<thisBoard.rows.length; i++) {
             for (int j=0; j<thisBoard.rows[i].length; j++) {
                 System.out.printf("%c ", thisBoard.rows[i][j].getColour());
             }
             System.out.println();
         }
-
-        thisBoard.rows[0][0].setColour('B');
-        System.out.println(thisBoard.rows[1][0].getAdjacent()[1].getColour());
+        thisBoard.testWin(thisBoard);
     }
 
     // Constructor for making a Board with n rows
@@ -51,67 +50,76 @@ public class Board {
         }
     }
 
-    // Method for filling in a boardstate into an empty board
-    public void fillBoard(String file) {
-
+    // Method for filling in a board state into an empty board
+    public static Board fillBoard() {
+        Scanner input = new Scanner(System.in);
+        Board newBoard = null;
+        String token;
+        int i, j, n = 0;
+        try {
+            newBoard = new Board(n = input.nextInt());
+        }
+        catch (InputMismatchException e) {
+            System.err.println("Error: Improperly formatted board in input - program halted.");
+            System.exit(1);
+        }
+        for (i=0; i<newBoard.rows.length; i++) {
+            for (j=0; j<newBoard.rows[i].length; j++) {
+                token = input.next();
+                if (!(token.equals("-") || token.equals("B") || token.equals("W"))) {
+                    System.err.println("Error: Improperly formatted board in input - program halted.");
+                    System.exit(1);
+                }
+                newBoard.rows[i][j] = new Hex(j, i, token.charAt(0), newBoard);
+            }
+        }
+        input.close();
+        return newBoard;
     }
 
     // Method for checking if there is a winner
     public void testWin(Board board) {
-        int i, j;
-        boolean draw = true;
-        for (i=0; i<board.rows.length; i++) {
-            for (j=0; j<board.rows[i].length; j++) {
-                if (board.rows[i][j].colour == '-') {
-                    draw = false;
-                    break;
-                }
-            }
-        }
-        if (draw){
-            System.out.print("Draw\nNil");
-            return;
-        }
 
         int state=0;
 
-        if (findLoop(board, 'b')) {
+        if (findLoop(board, 'B')) {
             state += 1;
         }
-        if (findLoop(board, 'w')) {
+        if (findLoop(board, 'W')) {
             state += 2;
         }
-        if (findTripod(board, 'b')) {
+        if (findTripod(board, 'B')) {
             state += 4;
         }
-        if (findTripod(board, 'w')) {
+        if (findTripod(board, 'W')) {
             state += 7;
         }
 
         switch(state) {
             case 0: System.out.print("None\nNil");
-                    break;
+                break;
             case 1: System.out.print("Black\nLoop");
-                    break;
+                break;
             case 2: System.out.print("White\nLoop");
-                    break;
+                break;
             case 3: System.out.print("Invalid board state.");
-                    break;
+                break;
             case 4: System.out.print("Black\nTripod");
-                    break;
+                break;
             case 5: System.out.print("Black\nBoth");
-                    break;
+                break;
             case 6: System.out.print("Invalid board state.");
-                    break;
+                break;
             case 7: System.out.print("White\nTripod");
-                    break;
+                break;
             case 8: System.out.print("Invalid board state.");
-                    break;
+                break;
             case 9: System.out.print("White\nBoth");
         }
 
-
     }
+
+
 
     /**
      * Method for finding loops of a colour, prints out name of colour and "loop" if found
@@ -121,8 +129,8 @@ public class Board {
         // For each hex that is empty or opposite colour AND non-edge, add to queue.
         PriorityQueue<Hex> queue = new PriorityQueue<Hex>(board.numHexes);
         int i, j;
-        for (i=1; i<board.rows.length-1; i++) {
-            for (j=1; j<board.rows[i].length-1; j++) {
+        for (i=0; i<board.rows.length; i++) {
+            for (j=0; j<board.rows[i].length; j++) {
                 if (board.rows[i][j].getColour() != colour) {
                     queue.add(board.rows[i][j]);
                 }
@@ -149,24 +157,20 @@ public class Board {
     public boolean explore(Hex origin, Hex[] neighbours, PriorityQueue<Hex> queue) {
         int i;
         Hex currentHex;
-        Hex previousHex;
         // Check each of current hexes neighbours
         for (i=0; i<neighbours.length; i++) {
-            previousHex = origin;
             currentHex = neighbours[i];
-            if (queue.contains(currentHex)) {
-                // This means the hex is empty/opposite colour and non-edge, so expand it (recursive)
-                if (explore(currentHex, currentHex.getAdjacent(), queue)){
-                    queue.remove(currentHex);
-                    return true;
-                }
-            } else if (currentHex == null) {
+            if (currentHex == null) {
                 // This means we are at an edge
-                queue.remove(previousHex);
                 return false;
+            } else if (queue.contains(currentHex)) {
+                // This means the hex is empty/opposite colour and non-edge, so expand it (recursive)
+                queue.remove(currentHex);
+                return explore(currentHex, currentHex.getAdjacent(), queue);
             }
+            // Otherwise, opposite coloured hex or already visited. This is good.
         }
-        // This means that there's nothing more to explore and not at an edge
+        // This means that there's nothing more to explore and not at an edge; We're inside a loop!
         return true;
     }
 
@@ -188,8 +192,10 @@ public class Board {
                     currentHex = board.rows[i][j];
                     neighbours = currentHex.getAdjacent();
                     for (n=0; n<neighbours.length; n++) {
-                        if (neighbours[n].getColour() == colour) {
-                            numAdj++;
+                        if (neighbours[n] != null) {
+                            if (neighbours[n].getColour() == colour) {
+                                numAdj++;
+                            }
                         }
                     }
                     if (numAdj >= 3) {
@@ -221,7 +227,7 @@ public class Board {
             if (currentHex != null) {
                 if (currentHex.getColour() == colour) {
                     // Continue tracing along same coloured adjacent hexes.
-                    count = trace(currentHex, currentHex.getAdjacent(), colour, board, count);
+                    count += trace(currentHex, currentHex.getAdjacent(), colour, board, count);
                 }
                 // Not the same colour, move along.
             } else {
@@ -233,7 +239,7 @@ public class Board {
                 }
             }
         }
-        return 0;
+        return count;
     }
 
     /**

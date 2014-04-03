@@ -4,7 +4,7 @@
 * @author Nick
 */
 
-public class Hex {
+public class Hex implements Comparable<Hex> {
 	int x, y;
 	char colour;
 	Board board;
@@ -75,4 +75,7 @@ public class Hex {
 		this.colour = colour;
 	}
 
+    public int compareTo(Hex hex) {
+        return 0;
+    }
 }
