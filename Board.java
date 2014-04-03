@@ -79,7 +79,12 @@ public class Board {
 
     // Method for checking if there is a winner
     public void testWin(Board board) {
-
+        if (findLoop(board, 'B')) {
+            System.out.print("Black\nLoop");
+        } else {
+            System.out.print("Nope");
+        }
+/*
         int state=0;
 
         if (findLoop(board, 'B')) {
@@ -116,13 +121,11 @@ public class Board {
                 break;
             case 9: System.out.print("White\nBoth");
         }
-
+*/
     }
 
-
-
     /**
-     * Method for finding loops of a colour, prints out name of colour and "loop" if found
+     * Method for finding loops of a colour
      */
 
     public boolean findLoop(Board board, char colour) {
@@ -155,20 +158,25 @@ public class Board {
      * Breadth first search.
      */
     public boolean explore(Hex origin, Hex[] neighbours, PriorityQueue<Hex> queue) {
+
         int i;
         Hex currentHex;
+
         // Check each of current hexes neighbours
         for (i=0; i<neighbours.length; i++) {
             currentHex = neighbours[i];
+
+            // If we are at an edge
             if (currentHex == null) {
-                // This means we are at an edge
                 return false;
-            } else if (queue.contains(currentHex)) {
-                // This means the hex is empty/opposite colour and non-edge, so expand it (recursive)
+            }
+            // This means the hex is empty/opposite colour and non-edge, so expand it (recursive)
+            else if (queue.contains(currentHex)) {
                 queue.remove(currentHex);
                 return explore(currentHex, currentHex.getAdjacent(), queue);
             }
-            // Otherwise, opposite coloured hex or already visited. This is good.
+            // Otherwise, right coloured hex or already visited. This is good.
+
         }
         // This means that there's nothing more to explore and not at an edge; We're inside a loop!
         return true;
@@ -187,23 +195,31 @@ public class Board {
         Hex[] neighbours;
         for (i=0; i<board.rows.length; i++) {
             for (j=0; j<board.rows[i].length; j++) {
+
+                // Do the following if on colour
                 if (board.rows[i][j].getColour() == colour) {
                     numAdj = 0;
                     currentHex = board.rows[i][j];
                     neighbours = currentHex.getAdjacent();
+
+                    // Look at each of its neighbours to see if they are also on colour
                     for (n=0; n<neighbours.length; n++) {
+                        // null check first
                         if (neighbours[n] != null) {
                             if (neighbours[n].getColour() == colour) {
                                 numAdj++;
                             }
                         }
                     }
+
+                    // If three or more adjacent on colour hexes, add to queue
                     if (numAdj >= 3) {
                         queue.add(currentHex);
                     }
                 }
             }
         }
+
         // For each hex in the queue, we trace connecting hexes until we hit an edge or no more connectors.
         while (queue.size() != 0) {
             currentHex = queue.poll();

@@ -1,0 +1,59 @@
+FENCEMASTER
+By Kemble Song (584999) & Nicholas Poulton (#######)
+
+Structure of our fencemaster win detection program:
+    - Board class:
+        - Creates an array of 'hexes' that represents the game board.
+        - Has a method fillBoard() to read a board state from input.
+        - Has a method testWin() to see if given board state has a winner via:
+            - findLoop() which utilises a depth-first recursive search algorithm explore() to find loops.
+            - findTripod() which also uses depth-first search recursion in trace() to find tripods.
+    - Hex class:
+        - Represents the individual hexagonal positions on the board.
+        - Has a method getAdjacent() to return an array of adjacent hexes.
+        - It's attributes are colour, x-y coordinates, and board it belongs to.
+
+Libraries used:
+
+
+Pseudocode for loop detection of colour:
+    initialize queue
+    FOR each hex in board
+        IF hex.colour != colour
+            ADD hex to queue
+    WHILE queue is not empty
+        TAKE out the first item in queue
+        EXPLORE its neighbours
+            IF we hit an edge
+                RETURN false
+            IF we hit a hex that != colour (ie. exists in the queue)
+                EXPLORE it (recursively does this until 'false' is met or...)
+            OTHERWISE (we find on colour hex)
+                RETURN true
+
+Explanation of loop detection algorithm and its complexity:
+    Esentially, if we were asked to find a 'black' loop, we would look at all the white hexes and see if
+    we can move along adjacent white hexes until we hit an edge. If we never hit an edge after expanding from
+    a white hex, then we know that we are inside a black loop.
+
+Pseudocode for tripod detection of colour:
+    initialize queue
+    FOR each hex in board
+        IF hex = colour and has 3 other adjacent hexes of same colour
+            ADD to queue
+    WHILE queue is not empty
+        TAKE out the first item in queue
+        TRACE neighbours with same colour
+            IF we hit a NON corner edge
+                count += 1;
+            IF we hit a hex with same colour
+                TRACE it (recursive)
+            OTHERWISE (We hit a non-colour non-edge)
+                Start over with next item in queue
+
+Explanation of tripod detection algorithm and its complexity:
+    We initially start at hexes with three or more adjacent hexes that have the same colour.
+    Then we trace along paths using depth-first search until we hit an edge or reach a hex
+    with no adjacent on coloured hexes, and return to the most recent branching point. If for any
+    given starting hex we count three edges, we have found a tripod.
+
