@@ -58,17 +58,70 @@ public class Board {
 
     // Method for checking if there is a winner
     public void testWin(Board board) {
-        findLoop(board, 'b');
-        findLoop(board, 'w');
-        findTripod(board, 'b');
-        findTripod(board, 'w');
+        int i, j;
+        boolean draw = true;
+        for (i=0; i<board.rows.length; i++) {
+            for (j=0; j<board.rows[i].length; j++) {
+                if (board.rows[i][j].colour == '-') {
+                    draw = false;
+                    break;
+                }
+            }
+        }
+        if (draw){
+            System.out.print("Draw\nNil");
+            return;
+        }
+
+        int state=0;
+
+        if (findLoop(board, 'b')) {
+            state += 1;
+            //System.out.print("Black\nLoop");
+        }
+        if (findLoop(board, 'w')) {
+            state += 2;
+            //System.out.print("White\nloop");
+        }
+        if (findTripod(board, 'b')) {
+            state += 4;
+            //System.out.print("Black\nTripod");
+        }
+        if (findTripod(board, 'w')) {
+            state += 7;
+            //System.out.print("White\nTripod");
+        }
+
+        switch(state) {
+            case 0: System.out.print("None\nNil");
+                    break;
+            case 1: System.out.print("Black\nLoop");
+                    break;
+            case 2: System.out.print("White\nLoop");
+                    break;
+            case 3: System.out.print("Invalid board state.");
+                    break;
+            case 4: System.out.print("Black\nTripod");
+                    break;
+            case 5: System.out.print("Black\nBoth");
+                    break;
+            case 6: System.out.print("Invalid board state.");
+                    break;
+            case 7: System.out.print("White\nTripod");
+                    break;
+            case 8: System.out.print("Invalid board state.");
+                    break;
+            case 9: System.out.print("White\nBoth");
+        }
+
+
     }
 
     /**
      * Method for finding loops of a colour, prints out name of colour and "loop" if found
      */
 
-    public void findLoop(Board board, char colour) {
+    public boolean findLoop(Board board, char colour) {
         // For each hex that is empty or opposite colour AND non-edge, add to queue.
         PriorityQueue<Hex> queue = new PriorityQueue<Hex>(board.numHexes);
         int i, j;
@@ -86,10 +139,10 @@ public class Board {
             currentHex = queue.poll();
             neighbours = currentHex.getAdjacent();
             if (explore(currentHex, neighbours, queue)) {
-                System.out.printf("%c\nLoop", colour);
-                break;
+                return true;
             }
         }
+        return false;
     }
 
     /**
@@ -126,7 +179,7 @@ public class Board {
      *
      */
 
-    public void findTripod(Board board, char colour) {
+    public boolean findTripod(Board board, char colour) {
         // For each hex that has three or more connecting hexes with same colour, add to queue.
         PriorityQueue<Hex> queue = new PriorityQueue<Hex>(board.numHexes);
         int i, j, n, numAdj;
@@ -154,10 +207,10 @@ public class Board {
             currentHex = queue.poll();
             neighbours = currentHex.getAdjacent();
             if (trace(currentHex, neighbours, colour, board, 0) >= 3) {
-                System.out.printf("%c\nTripod", colour);
-                break;
+                return true;
             }
         }
+        return false;
     }
 
     /**
