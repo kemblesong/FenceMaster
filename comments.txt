@@ -1,5 +1,5 @@
 FENCEMASTER
-By Kemble Song (584999) & Nicholas Poulton (#######)
+By Kemble Song (584999) & Nicholas Poulton (585075)
 
 Structure of our fencemaster win detection program:
     - Board class:
@@ -14,7 +14,7 @@ Structure of our fencemaster win detection program:
         - It's attributes are colour, x-y coordinates, and board it belongs to.
 
 Libraries used:
-
+Java.util (Scanner, PriorityQueue, exception classes)
 
 Pseudocode for loop detection of colour:
     initialize queue
@@ -32,9 +32,14 @@ Pseudocode for loop detection of colour:
                 RETURN true
 
 Explanation of loop detection algorithm and its complexity:
-    Essentially, if we were asked to find a 'black' loop, we would look at all the white hexes and see if
-    we can move along adjacent white hexes until we hit an edge. If we never hit an edge after expanding from
-    a white hex, then we know that we are inside a black loop.
+    Essentially, if we were asked to find a 'black' loop, we would look at all the non-black hexes and see if
+    we can move along adjacent non-black hexes until we hit an edge. If we never hit an edge after expanding from
+    a non-black hex, then we know that we are inside a black loop.
+    
+    Since the algorithm relies on moving from unfriendly hex to unfriendly hex, its complexity depends heavily on
+    the arrangement of the board. The worst conceivable arrangement would involve a loop around the entire board,
+    which would require exploring every hex inside; since a board contains 3*n^2 - 3*n + 1 hexes, and this effectively
+    means exploring every hex on a board two sizes smaller, we have O(n^2) complexity.
 
 Pseudocode for tripod detection of colour:
     initialize queue
@@ -58,4 +63,12 @@ Explanation of tripod detection algorithm and its complexity:
     Then we trace along paths using depth-first search until we hit an edge or reach a hex
     with no adjacent on coloured hexes, and return to the most recent branching point. If for any
     given starting hex we count three edges, we have found a tripod.
-
+    
+    The complexity analysis for this function is similar to that of the loop detection algorithm,
+    since it keeps track of those hexes that have been visited. The initial pass to find clumps
+    of same-coloured hexes is O(n^2) because it scans the entire board, and the exploration
+    is essentially the same as the exploration in the loop detection for complexity purposes, giving
+    a final worst case of O(n^2).
+    
+    On paper, this doesn't sound great, but any reasonably-sized board is still tested in well under
+    a second, so there's no need to implement any clever time-saving measures.

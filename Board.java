@@ -1,3 +1,5 @@
+/*By Kemble Song (584999) & Nicholas Poulton (585075)*/
+
 /**
  * This is board.
  * Class for generating a Board with n dimension.
@@ -7,6 +9,8 @@
  * @author kemble
  */
 
+//package fencemaster;
+
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.PriorityQueue;
@@ -14,22 +18,16 @@ import java.util.PriorityQueue;
 public class Board {
 
     /* A board has rows. Each row has a variable length based on
-       hexagon pattern.
+       hexagon pattern. Thus, the hexes are contained in a two-dimensional
+       array, and the arrays in the first array have variable length.
      */
 
     Hex[][] rows;
     int dimension;
     int numHexes;
 
-    // Just to test if board was successfully made
     public static void main(String[] args) {
         Board thisBoard = fillBoard();
-        for (int i=0; i<thisBoard.rows.length; i++) {
-            for (int j=0; j<thisBoard.rows[i].length; j++) {
-                System.out.printf("%c ", thisBoard.rows[i][j].getColour());
-            }
-            System.out.println();
-        }
         thisBoard.testWin(thisBoard);
     }
 
@@ -44,6 +42,8 @@ public class Board {
         rows = new Hex[2*n-1][];
         numHexes = 3*n*n-3*n+1;
         int i, j;
+        /* Initialize all the arrays, then go through and initialize all the
+           entries - it doesn't matter what with. */
         for (i=0; i<n; i++) {
             rows[i] = new Hex[n+i];
             rows[2*n-(i+2)] = new Hex[n+i];
@@ -55,7 +55,9 @@ public class Board {
     }
 
     /**
-     * Method for filling in a board state into an empty board
+     * Method for creating a new board from stdin. Input must contain one
+     * integer for the dimension of the board, then a series of characters
+     * for the tile colours, all separated by whitespace.
      */
 
     public static Board fillBoard() {
@@ -66,6 +68,7 @@ public class Board {
         try {
             newBoard = new Board(input.nextInt());
         }
+        // If board size is not specified, exit.
         catch (InputMismatchException e) {
             System.err.println("Error: Improperly formatted board in input - program halted.");
             System.exit(1);
@@ -73,10 +76,12 @@ public class Board {
         for (i=0; i<newBoard.rows.length; i++) {
             for (j=0; j<newBoard.rows[i].length; j++) {
                 token = input.next();
+                // Check if input if input is as expected.
                 if (!(token.equals("-") || token.equals("B") || token.equals("W"))) {
                     System.err.println("Error: Improperly formatted board in input - program halted.");
                     System.exit(1);
                 }
+                // Insert new hex into board. Remember that the y-coordinate goes first.
                 newBoard.rows[i][j] = new Hex(j, i, token.charAt(0), newBoard);
             }
         }
@@ -85,9 +90,8 @@ public class Board {
     }
 
     /**
-     * Method for checking if there is a winner
-     * Uses a switch statement to switch between the ten different possible board states based on winning positions.
-     *
+     * Method for checking if there is a winner.
+     * Prints the information to stdout.
      */
     public void testWin(Board board) {
 
@@ -148,9 +152,10 @@ public class Board {
      * Method for finding loops of a colour
      */
 
-    public boolean findLoop(Board board, char colour) {
+    private boolean findLoop(Board board, char colour) {
         // For each hex that is empty or opposite colour AND non-edge, add to queue.
         PriorityQueue<Hex> queue = new PriorityQueue<Hex>(board.numHexes);
+        PriorityQueue<Hex> visited = new PriorityQueue<Hex>(board.numHexes);
         int i, j;
         for (i=0; i<board.rows.length; i++) {
             for (j=0; j<board.rows[i].length; j++) {
@@ -163,9 +168,10 @@ public class Board {
         Hex[] neighbours;
         // Loop as long as queue is not empty
         while (queue.size() != 0) {
+            visited.clear();
             currentHex = queue.poll();
             neighbours = currentHex.getAdjacent();
-            if (explore(neighbours, queue)) {
+            if (explore(neighbours, queue, visited, colour)) {
                 return true;
             }
         }
@@ -177,7 +183,8 @@ public class Board {
      * or finds itself surrounded by nodes not in the queue returning true.
      * Depth first search.
      */
-    public boolean explore(Hex[] neighbours, PriorityQueue<Hex> queue) {
+    private boolean explore(Hex[] neighbours, PriorityQueue<Hex> queue,
+                            PriorityQueue<Hex> visited, char colour) {
 
         int i;
         Hex currentHex;
@@ -191,9 +198,9 @@ public class Board {
                 return false;
             }
             // This means the hex is empty/opposite colour and non-edge, so expand it (recursive)
-            else if (queue.contains(currentHex)) {
-                queue.remove(currentHex);
-                if (!explore(currentHex.getAdjacent(), queue)) {
+            else if (currentHex.getColour() != colour && !visited.contains(currentHex)) {
+                visited.add(currentHex);
+                if (!explore(currentHex.getAdjacent(), queue, visited, colour)) {
                     return false;
                 }
             }
@@ -209,7 +216,7 @@ public class Board {
      *
      */
 
-    public boolean findTripod(Board board, char colour) {
+    private boolean findTripod(Board board, char colour) {
         // For each hex that has three or more connecting hexes with same colour, add to queue.
         PriorityQueue<Hex> queue = new PriorityQueue<Hex>(board.numHexes);
         PriorityQueue<Hex> visited = new PriorityQueue<Hex>(board.numHexes);
@@ -259,7 +266,7 @@ public class Board {
      * Method for tracing linked hexes of the same colour until an edge is hit or the link is broken.
      * Depth first search.
      */
-    public int trace(Hex origin, Hex[] neighbours, char colour, Board board, PriorityQueue<Hex> visited) {
+    private int trace(Hex origin, Hex[] neighbours, char colour, Board board, PriorityQueue<Hex> visited) {
         int i;
         int count = 0;
         Hex currentHex;
@@ -294,7 +301,7 @@ public class Board {
     /**
      * Method for testing if a hex is a corner.
      */
-    public boolean isCorner(Hex hex, int boardDimension) {
+    boolean isCorner(Hex hex, int boardDimension) {
         return (hex.x == 0 && hex.y == 0) ||
                 (hex.x == boardDimension - 1 && hex.y == 0) ||
                 (hex.x == 0 && hex.y == boardDimension - 1) ||
