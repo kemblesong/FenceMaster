@@ -316,7 +316,7 @@ public class Board {
      * @param col
      * @return True if the coordinates are valid, false if not
      */
-    boolean isLegal(int row, int col)
+    boolean isLegal(int row, int col) 
     {
     	if (row < 0 || col < 0) {
     		return false;
@@ -328,5 +328,13 @@ public class Board {
     		return false;
     	}
     	return true;
+    }
+    
+    Board applyMove(int row, int col, char colour) {
+    	if (!isLegal(row, col)) {
+    		System.err.println("Illegal move in applyMove function, sort that out on the quickfast.");
+    	}
+    	this.rows[row][col] = new Hex(row,col,colour,this);
+    	return this;
     }
 }

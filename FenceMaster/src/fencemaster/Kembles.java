@@ -5,7 +5,7 @@ import java.io.PrintStream;
 public class Kembles implements Player, Piece {
 	
 	Board board;
-	int colour;
+	int colour, enemy;
 
 	@Override
 	public int getWinner() {
@@ -38,7 +38,7 @@ public class Kembles implements Player, Piece {
 		return EMPTY;
 	}
 
-	
+	@Override
 	public int init(int n, int p) {
 		if (n < 1 || !(p == BLACK || p == WHITE)) 
 		{
@@ -46,13 +46,25 @@ public class Kembles implements Player, Piece {
 		}
 		board = new Board(n);
 		this.colour = p;
+		if(p == WHITE) this.enemy = BLACK;
+		else this.enemy = WHITE;
 		return 0;
 	}
 
 	@Override
 	public Move makeMove() {
-		// TODO Auto-generated method stub
-		return null;
+	int i, j;
+	float current, best = -10000;
+	Board nextboard = board;
+	Move choice = new Move();
+	for (i = 0; i < board.rows.length; i++) {
+		for (j = 0; j < board.rows[i].length; j++) {
+			current = minimax(nextboard.applyMove(i, j, translatePiece(colour)),false);
+			if (current > best) choice = new Move(colour, false, i, j);
+			nextboard = board;
+		}
+	}
+		return choice;
 	}
 
 	@Override
@@ -63,10 +75,14 @@ public class Kembles implements Player, Piece {
 		if (!(m.P == BLACK || m.P == WHITE)) {
 			return -1;
 		}
-		if (translateHex(board.rows[m.Row][m.Col]) != EMPTY && !m.IsSwap) {
-			return -1;
+		/* Deliberately not checking to see if the opponent is using pieces
+		 * of his assigned colour; if he wants to make moves that help me,
+		 * that's fine by me.
+		 */
+		if (hexToPiece(board.rows[m.Row][m.Col]) != EMPTY && !m.IsSwap) {
+			return -1; // Doesn't check to see whether opponent actually can use swap rule
 		}
-		board.rows[m.Row][m.Col] = new Hex (m.Row,m.Col,translateMove(m.P),board);
+		board.rows[m.Row][m.Col] = new Hex (m.Row,m.Col,translatePiece(m.P),board);
 		return 0;
 	}
 
@@ -75,12 +91,53 @@ public class Kembles implements Player, Piece {
 		int i, j;
 		for (i = 0; i < board.rows.length; i++) {
 			for (j = 0; j < board.rows[i].length; j++) {
-				output.println(board.rows[i][j]);
+				output.print(board.rows[i][j] + " ");
 			}
+			output.println();
 		}
 	}
 	
-	private int translateHex(Hex input) {
+	private float minimax(Board board, boolean max) {
+		if (getWinner() > 0) {
+			return utility(board);
+		}
+		int i, j;
+		Board nextboard = board;
+		float util, ideal = 0;
+		if (max) {
+			for (i = 0; i < board.rows.length; i++) {
+				for (j = 0; j < board.rows[i].length; j++) {
+					util = minimax(nextboard.applyMove(i, j, translatePiece(colour)), false);
+					if (util > ideal) {
+						ideal = util;
+					}
+					nextboard = board;
+				}
+			}
+			return ideal;
+		}
+		for (i = 0; i < board.rows.length; i++) {
+			for (j = 0; j < board.rows[i].length; j++) {
+				util = minimax(nextboard.applyMove(i, j, translatePiece(enemy)), true);
+				if (util < ideal) {
+					ideal = util;
+				}
+				nextboard = board;
+			}
+		}
+		return ideal;
+	}
+	
+	private float utility(Board board) {
+		return 0;
+	}
+	
+	@SuppressWarnings("unused")
+	private Move hexToMove(Hex input) {
+		return new Move(this.colour, false, input.y, input.x);
+	}
+	
+	private int hexToPiece(Hex input) {
 		if (input.colour == '-') {
 			return EMPTY;
 		}
@@ -93,7 +150,7 @@ public class Kembles implements Player, Piece {
 		return INVALID;
 	}
 	
-	private char translateMove(int input) {
+	private char translatePiece(int input) {
 		if (input == BLACK) {
 			return 'B';
 		}
