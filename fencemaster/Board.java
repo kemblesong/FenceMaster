@@ -1,15 +1,16 @@
+package fencemaster;
 /*By Kemble Song (584999) & Nicholas Poulton (585075)*/
 
 /**
  * This is board.
- * Class for generating a Board with n dimension.
+ * Class for generating a fencemaster.Board with n dimension.
  * Has methods for:
  * - filling in a board state from input
  * - checking if given board state is winning
  * @author kemble
  */
 
-//package fencemaster;
+
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
@@ -32,7 +33,7 @@ public class Board {
     }
 
     /**
-     * Constructor for making a Board with n rows
+     * Constructor for making a fencemaster.Board with n rows
      * Max length of any row is 2*n-1
      * Max number of hexes is 3*n*n-3*n+1
      */

@@ -1,3 +1,4 @@
+package fencemaster;
 /*By Kemble Song (584999) & Nicholas Poulton (585075)*/
 
 /**
@@ -6,7 +7,7 @@
  * @author Nick
  */
 
-//package fencemaster;
+
 
 public class Hex implements Comparable{
     int x, y;
@@ -54,7 +55,7 @@ public class Hex implements Comparable{
     }
 
     /**
-     * Hex class constructor. Y-coordinate goes first, like in the project spec.
+     * fencemaster.Hex class constructor. Y-coordinate goes first, like in the project spec.
      * @param y The hex's y-coordinate on the board.
      * @param x The hex's x-coordinate on the board.
      * @param colour This hex's allegiance.
