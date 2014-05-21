@@ -2,13 +2,13 @@ FENCEMASTER
 By Kemble Song (584999) & Nicholas Poulton (585075)
 
 Structure of our fencemaster win detection program:
-    - Board class:
+    - fencemaster.Board class:
         - Creates an array of 'hexes' that represents the game board.
         - Has a method fillBoard() to read a board state from input.
         - Has a method testWin() to see if given board state has a winner via:
             - findLoop() which utilises a depth-first recursive search algorithm explore() to find loops.
             - findTripod() which also uses depth-first search recursion in trace() to find tripods.
-    - Hex class:
+    - fencemaster.Hex class:
         - Represents the individual hexagonal positions on the board.
         - Has a method getAdjacent() to return an array of adjacent hexes.
         - It's attributes are colour, x-y coordinates, and board it belongs to.
