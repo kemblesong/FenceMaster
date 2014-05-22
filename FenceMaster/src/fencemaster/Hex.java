@@ -9,9 +9,9 @@
 package fencemaster;
 
 @SuppressWarnings("rawtypes")
-public class Hex implements Comparable{
+public class Hex implements Comparable, Piece{
 	int x, y;
-	char colour;
+	int colour;
 	Board board;
 	
 	/** Fill an array with all adjacent hexes. Moves
@@ -61,7 +61,7 @@ public class Hex implements Comparable{
  * @param colour This hex's allegiance.
  * @param board The board this hex is on.
  */
-	public Hex(int y, int x, char colour, Board board) 
+	public Hex(int y, int x, int colour, Board board) 
 	{
 		this.x = x;
 		this.y = y;
@@ -77,14 +77,23 @@ public class Hex implements Comparable{
 		/* The primitive type char must be typecast to Character first
 		 * before the toString() method can be called on it.
 		 */
-		return ((Character)(this.getColour())).toString();
+		if (this.colour == WHITE) {
+			return "W";
+		}
+		if (this.colour == BLACK) {
+			return "B";
+		}
+		if (this.colour == EMPTY) {
+			return "-";
+		}
+		else return "?";
 	}
 	
-	public char getColour() {
+	public int getColour() {
 		return colour;
 	}
 
-	public void setColour(char colour) {
+	public void setColour(int colour) {
 		this.colour = colour;
 	}
  
