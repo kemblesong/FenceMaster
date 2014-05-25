@@ -15,7 +15,7 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.PriorityQueue;
 
-public class Board {
+public class Board implements Piece{
 
     /* A board has rows. Each row has a variable length based on
        hexagon pattern. Thus, the hexes are contained in a two-dimensional
@@ -48,8 +48,8 @@ public class Board {
             rows[i] = new Hex[n+i];
             rows[2*n-(i+2)] = new Hex[n+i];
             for (j=0; j < this.rows[i].length; j++) {
-                rows[i][j] = new Hex(i, j, '-', this);
-                rows[2*n-(i+2)][j] = new Hex(i, j, '-', this);
+                rows[i][j] = new Hex(i, j, EMPTY, this);
+                rows[2*n-(i+2)][j] = new Hex(i, j, EMPTY, this);
             }
         }
     }
@@ -99,7 +99,7 @@ public class Board {
         int i, j;
         for (i=0; i<board.rows.length; i++) {
             for (j=0; j<board.rows[i].length; j++) {
-                if (board.rows[i][j].colour == '-') {
+                if (board.rows[i][j].colour == EMPTY) {
                     draw = false;
                 }
             }
@@ -152,7 +152,7 @@ public class Board {
      * Method for finding loops of a colour
      */
 
-    boolean findLoop(Board board, char colour) {
+    boolean findLoop(Board board, int colour) {
         // For each hex that is empty or opposite colour AND non-edge, add to queue.
         PriorityQueue<Hex> queue = new PriorityQueue<Hex>(board.numHexes);
         PriorityQueue<Hex> visited = new PriorityQueue<Hex>(board.numHexes);
@@ -183,8 +183,8 @@ public class Board {
      * or finds itself surrounded by nodes not in the queue returning true.
      * Depth first search.
      */
-    private boolean explore(Hex[] neighbours, PriorityQueue<Hex> queue, 
-                                              PriorityQueue<Hex> visited, char colour) {
+    private boolean explore(Hex[] neighbours, PriorityQueue<Hex> queue,
+                            PriorityQueue<Hex> visited, int colour) {
 
         int i;
         Hex currentHex;
@@ -216,7 +216,7 @@ public class Board {
      *
      */
 
-    boolean findTripod(Board board, char colour) {
+    boolean findTripod(Board board, int colour) {
         // For each hex that has three or more connecting hexes with same colour, add to queue.
         PriorityQueue<Hex> queue = new PriorityQueue<Hex>(board.numHexes);
         PriorityQueue<Hex> visited = new PriorityQueue<Hex>(board.numHexes);
@@ -266,7 +266,7 @@ public class Board {
      * Method for tracing linked hexes of the same colour until an edge is hit or the link is broken.
      * Depth first search.
      */
-    private int trace(Hex origin, Hex[] neighbours, char colour, Board board, PriorityQueue<Hex> visited) {
+    private int trace(Hex origin, Hex[] neighbours, int colour, Board board, PriorityQueue<Hex> visited) {
         int i;
         int count = 0;
         Hex currentHex;
@@ -309,32 +309,32 @@ public class Board {
                 (hex.x == 0 && hex.y == 2 * boardDimension - 2) ||
                 (hex.x == boardDimension - 1 && hex.y == 2 * boardDimension - 2);
     }
-    
+
     /**
      * Checks whether a given set of coordinates is part of this board.
      * @param row
      * @param col
      * @return True if the coordinates are valid, false if not
      */
-    boolean isLegal(int row, int col) 
+    boolean isLegal(int row, int col)
     {
-    	if (row < 0 || col < 0) {
-    		return false;
-    	}
-    	if (row >= this.rows.length) {
-    		return false;
-    	}
-    	if (col >= this.rows[row].length) {
-    		return false;
-    	}
-    	return true;
+        if (row < 0 || col < 0) {
+            return false;
+        }
+        if (row >= this.rows.length) {
+            return false;
+        }
+        if (col >= this.rows[row].length) {
+            return false;
+        }
+        return true;
     }
-    
-    Board applyMove(int row, int col, char colour) {
-    	if (!isLegal(row, col)) {
-    		System.err.println("Illegal move in applyMove function, sort that out on the quickfast.");
-    	}
-    	this.rows[row][col] = new Hex(row,col,colour,this);
-    	return this;
+
+    Board applyMove(int row, int col, int colour) {
+        if (!isLegal(row, col)) {
+            System.err.println("Illegal move in applyMove function, sort that out on the quickfast.");
+        }
+        this.rows[row][col] = new Hex(row,col,colour,this);
+        return this;
     }
 }
