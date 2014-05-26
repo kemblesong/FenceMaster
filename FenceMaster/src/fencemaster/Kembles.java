@@ -44,10 +44,9 @@ public class Kembles implements Player, Piece {
 
 	@Override
 	public int init(int n, int p) {
-		if (n < 1 || !(p == BLACK || p == WHITE)) 
-		{
-			return -1;
-		}
+		if (n < 1 || !(p == BLACK || p == WHITE)) {
+            return -1;
+        }
 		board = new Board(n);
 		this.colour = p;
 		if(p == WHITE) this.enemy = BLACK;
@@ -59,13 +58,13 @@ public class Kembles implements Player, Piece {
 	public Move makeMove() {
 	int i, j;
 	float current, best = -10000;
-	Board nextboard = board;
+	Board nextBoard = board;
 	Move choice = new Move();
 	for (i = 0; i < board.rows.length; i++) {
 		for (j = 0; j < board.rows[i].length; j++) {
-			current = minimax(nextboard.applyMove(i, j, colour),false);
+			current = minimax(nextBoard.applyMove(i, j, colour),false);
 			if (current > best) choice = new Move(colour, false, i, j);
-			nextboard = board;
+			nextBoard = board;
 		}
 	}
 		return choice;
@@ -102,37 +101,45 @@ public class Kembles implements Player, Piece {
 	}
 	
 	private float minimax(Board board, boolean max) {
-		if (getWinner() > 0) {
+		if (testBoard(board) > 0) {
 			return utility(board);
 		}
 		int i, j;
-		Board nextboard = board;
+		Board nextBoard = board;
 		float util, ideal = 0;
 		if (max) {
 			for (i = 0; i < board.rows.length; i++) {
 				for (j = 0; j < board.rows[i].length; j++) {
-					util = minimax(nextboard.applyMove(i, j, colour), false);
+					util = minimax(nextBoard.applyMove(i, j, colour), false);
 					if (util > ideal) {
 						ideal = util;
 					}
-					nextboard = board;
+					nextBoard = board;
 				}
 			}
 			return ideal;
 		}
 		for (i = 0; i < board.rows.length; i++) {
 			for (j = 0; j < board.rows[i].length; j++) {
-				util = minimax(nextboard.applyMove(i, j, enemy), true);
+				util = minimax(nextBoard.applyMove(i, j, enemy), true);
 				if (util < ideal) {
 					ideal = util;
 				}
-				nextboard = board;
+				nextBoard = board;
 			}
 		}
 		return ideal;
 	}
 	
 	private float utility(Board board) {
-		return 0;
+		int state = testBoard(board);
+        int total = 0;
+        if (state == this.colour) {
+            total += 5;
+        } else if (state == this.enemy) {
+            total -= 5;
+        }
+
+        return total;
 	}
 }
