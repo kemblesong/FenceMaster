@@ -1,0 +1,13 @@
+To be the master of fences is my destiny!
+
+To do:
+
+Comment code
+
+Limit search depth so we can successfully complete games on boards larger than dimension 2
+
+Alpha beta pruning
+
+Utility function based on value of particular tiles, how close opponent is to winning
+
+Machine learning
