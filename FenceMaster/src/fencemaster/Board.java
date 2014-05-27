@@ -15,7 +15,7 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.PriorityQueue;
 
-public class Board implements Piece{
+public class Board implements Piece, Cloneable{
 
     /* A board has rows. Each row has a variable length based on
        hexagon pattern. Thus, the hexes are contained in a two-dimensional
@@ -337,4 +337,28 @@ public class Board implements Piece{
     	this.rows[row][col] = new Hex(row,col,colour,this);
     	return this;
     }
+    
+    protected Board clone() {
+    	Board newboard = new Board(this.dimension);
+    	int i, j;
+    	for (i = 0; i < this.rows.length; i++) {
+    		for (j = 0; j < this.rows[i].length; j++) {
+    			if (this.rows[i][j].colour != EMPTY) {
+    				newboard.rows[i][j].colour = this.rows[i][j].colour;
+    			}
+    		}
+    	}
+		return newboard;
+    }
+    
+    // debug function
+    public void output() {
+		int i, j;
+		for (i = 0; i < this.rows.length; i++) {
+			for (j = 0; j < this.rows[i].length; j++) {
+				System.out.print(this.rows[i][j] + " ");
+			}
+			System.out.println();
+		}
+	}
 }

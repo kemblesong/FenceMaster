@@ -6,13 +6,14 @@ public class Kembles implements Player, Piece {
 	
 	Board board;
 	int colour, enemy;
+	int nummoves;
 
 	@Override
 	public int getWinner() {
-		return testBoard(board);
+		return testBoard(board, nummoves);
 	}
 	
-	private int testBoard(Board input) {
+	private int testBoard(Board input, int nummoves) {
 		boolean white = false;
 		boolean black = false;
         if (input.findLoop(board, 'B')) {
@@ -27,10 +28,6 @@ public class Kembles implements Player, Piece {
         if (input.findTripod(board, 'W')) {
             white = true;
         }
-		if (black && white)
-		{
-			return INVALID;
-		}
 		if (white)
 		{
 			return WHITE;
@@ -39,7 +36,11 @@ public class Kembles implements Player, Piece {
 		{
 			return BLACK;
 		}
-		return EMPTY;
+		if (nummoves == board.numHexes)
+		{
+			return EMPTY;
+		}
+		return INVALID;
 	}
 
 	@Override
@@ -52,6 +53,7 @@ public class Kembles implements Player, Piece {
 		this.colour = p;
 		if(p == WHITE) this.enemy = BLACK;
 		else this.enemy = WHITE;
+		this.nummoves = 0;
 		return 0;
 	}
 
@@ -59,15 +61,19 @@ public class Kembles implements Player, Piece {
 	public Move makeMove() {
 	int i, j;
 	float current, best = -10000;
-	Board nextboard = board;
+	Board testboard = board.clone();
 	Move choice = new Move();
-	for (i = 0; i < board.rows.length; i++) {
-		for (j = 0; j < board.rows[i].length; j++) {
-			current = minimax(nextboard.applyMove(i, j, colour),false);
-			if (current > best) choice = new Move(colour, false, i, j);
-			nextboard = board;
+	for (i = 0; i < testboard.rows.length; i++) {
+		for (j = 0; j < testboard.rows[i].length; j++) {
+			if (testboard.rows[i][j].colour == EMPTY) {
+				current = minimax(testboard.applyMove(i, j, colour),false, this.nummoves);
+				if (current > best) choice = new Move(colour, false, i, j);
+				testboard = board.clone();
+			}
 		}
 	}
+		this.nummoves += 1;
+		board.rows[choice.Row][choice.Col] = new Hex (choice.Row,choice.Col,choice.P,board);
 		return choice;
 	}
 
@@ -87,6 +93,7 @@ public class Kembles implements Player, Piece {
 			return -1; // Doesn't check to see whether opponent actually can use swap rule
 		}
 		board.rows[m.Row][m.Col] = new Hex (m.Row,m.Col,m.P,board);
+		this.nummoves += 1;
 		return 0;
 	}
 
@@ -101,32 +108,37 @@ public class Kembles implements Player, Piece {
 		}
 	}
 	
-	private float minimax(Board board, boolean max) {
-		if (getWinner() > 0) {
-			return utility(board);
+	private float minimax(Board testboard, boolean max, int nummoves) {
+		testboard.output();
+		if (testBoard(testboard, nummoves) != INVALID) {
+			return utility(testboard);
 		}
 		int i, j;
-		Board nextboard = board;
-		float util, ideal = 0;
+		Board nextboard = testboard.clone();
+		float util = 0, ideal = 0;
 		if (max) {
-			for (i = 0; i < board.rows.length; i++) {
-				for (j = 0; j < board.rows[i].length; j++) {
-					util = minimax(nextboard.applyMove(i, j, colour), false);
-					if (util > ideal) {
-						ideal = util;
+			for (i = 0; i < testboard.rows.length; i++) {
+				for (j = 0; j < testboard.rows[i].length; j++) {
+					if (testboard.rows[i][j].colour == EMPTY) {
+						util = minimax(nextboard.applyMove(i, j, colour), false, nummoves +1);
+						if (util > ideal) {
+							ideal = util;
+						}
+						nextboard = testboard;
 					}
-					nextboard = board;
 				}
 			}
 			return ideal;
 		}
-		for (i = 0; i < board.rows.length; i++) {
-			for (j = 0; j < board.rows[i].length; j++) {
-				util = minimax(nextboard.applyMove(i, j, enemy), true);
-				if (util < ideal) {
-					ideal = util;
+		for (i = 0; i < testboard.rows.length; i++) {
+			for (j = 0; j < testboard.rows[i].length; j++) {
+				if (testboard.rows[i][j].colour == EMPTY) {
+					util = minimax(nextboard.applyMove(i, j, enemy), true, nummoves +1);
+					if (util < ideal) {
+						ideal = util;
+					}
+					nextboard = testboard.clone();
 				}
-				nextboard = board;
 			}
 		}
 		return ideal;
