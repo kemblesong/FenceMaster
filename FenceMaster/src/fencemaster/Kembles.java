@@ -45,10 +45,9 @@ public class Kembles implements Player, Piece {
 
 	@Override
 	public int init(int n, int p) {
-		if (n < 1 || !(p == BLACK || p == WHITE)) 
-		{
-			return -1;
-		}
+		if (n < 1 || !(p == BLACK || p == WHITE)) {
+            return -1;
+        }
 		board = new Board(n);
 		this.colour = p;
 		if(p == WHITE) this.enemy = BLACK;
@@ -111,7 +110,7 @@ public class Kembles implements Player, Piece {
 	private float minimax(Board testboard, boolean max, int nummoves) {
 		testboard.output();
 		if (testBoard(testboard, nummoves) != INVALID) {
-			return utility(testboard);
+			return utility(testboard, nummoves);
 		}
 		int i, j;
 		Board nextboard = testboard.clone();
@@ -144,7 +143,15 @@ public class Kembles implements Player, Piece {
 		return ideal;
 	}
 	
-	private float utility(Board board) {
-		return 0;
+	private float utility(Board board, int nummoves) {
+		int state = testBoard(board, nummoves);
+        int total = 0;
+        if (state == this.colour) {
+            total += 5;
+        } else if (state == this.enemy) {
+            total -= 5;
+        }
+
+        return total;
 	}
 }
