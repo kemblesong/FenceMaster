@@ -65,7 +65,7 @@ public class Kembles implements Player, Piece {
 	for (i = 0; i < testboard.rows.length; i++) {
 		for (j = 0; j < testboard.rows[i].length; j++) {
 			if (testboard.rows[i][j].colour == EMPTY) {
-				current = minimax(testboard.applyMove(i, j, colour),false, this.nummoves, -1000, 1000, 4);
+				current = minimax(testboard.applyMove(i, j, colour),false, this.nummoves, -1000, 1000, 2);
 				if (current > best) {
                     choice.Row = i;
                     choice.Col = j;
@@ -166,15 +166,15 @@ public class Kembles implements Player, Piece {
 
         // First see if the current board state is terminal.
         if (state == this.colour) {
-            return 10;
+            return 100;
         } else if (state == this.enemy) {
-            return -10;
+            return -100;
         }
         // Otherwise, run these other evaluations
-        int a = countOccupiedEdges(board);
-        int b;
-        int c;
-        return a;
+        float a = countOccupiedEdges(board);
+        float b = countAdjacentPieces(board);
+        float c = cornerSucks(board);
+        return a+b+c;
 	}
 
     /**
@@ -182,7 +182,7 @@ public class Kembles implements Player, Piece {
      */
 
     // Counts how many of the 6 edges on the board are occupied by one of our pieces, excluding corners.
-    private int countOccupiedEdges(Board board) {
+    private float countOccupiedEdges(Board board) {
         int count = 0;
         Hex currentHex;
         for (int i=0; i<board.rows[0].length; i++) {
@@ -192,28 +192,28 @@ public class Kembles implements Player, Piece {
                 break;
             }
         }
-        for (int i=0; i<(board.rows.length/2); i++) {
+        for (int i=0; i<(board.dimension); i++) {
             currentHex = board.rows[i][0];
             if ((currentHex.colour == this.colour) && !board.isCorner(currentHex,board.dimension)) {
                 count += 1;
                 break;
             }
         }
-        for (int i=(board.rows.length/2); i<board.rows.length; i++) {
+        for (int i=board.dimension; i<board.rows.length; i++) {
             currentHex = board.rows[i][0];
             if ((currentHex.colour == this.colour) && !board.isCorner(currentHex,board.dimension)) {
                 count += 1;
                 break;
             }
         }
-        for (int i=0; i<(board.rows.length/2); i++) {
+        for (int i=0; i<board.dimension; i++) {
             currentHex = board.rows[i][board.rows[i].length-1];
             if ((currentHex.colour == this.colour) && !board.isCorner(currentHex,board.dimension)) {
                 count += 1;
                 break;
             }
         }
-        for (int i=(board.rows.length/2); i<board.rows.length; i++) {
+        for (int i=board.dimension; i<board.rows.length; i++) {
             currentHex = board.rows[i][board.rows[i].length-1];
             if ((currentHex.colour == this.colour) && !board.isCorner(currentHex,board.dimension)) {
                 count += 1;
@@ -228,5 +228,66 @@ public class Kembles implements Player, Piece {
             }
         }
         return count;
+    }
+
+    // Counts how many adjacent pieces of our colour are next to pieces of our colour
+    // +1 score if our hex has adjacent pieces
+    // -1 score if an enemy hex has adjacent pieces
+    // Bonus points for exactly 3 (for tripod construction)
+    private float countAdjacentPieces(Board board) {
+        int count = 0;
+        int i, j, k;
+        int numAdj;
+        for (i = 0; i < board.rows.length; i++) {
+            for (j = 0; j < board.rows[i].length; j++) {
+                if (board.rows[i][j].colour == this.colour) {
+                    Hex[] adjHexes = board.rows[i][j].getAdjacent();
+                    numAdj = 0;
+                    for (k=0; k<adjHexes.length; k++) {
+                        if (adjHexes[k] != null) {
+                            if (adjHexes[k].colour == this.colour) {
+                                numAdj += 1;
+                            }
+                        }
+                    }
+                    if (numAdj > 0) {
+                        count += 1;
+                    }
+                    if (numAdj == 3) {
+                        count += 1;
+                    }
+                } else if (board.rows[i][j].colour == this.enemy) {
+                    Hex[] adjHexes = board.rows[i][j].getAdjacent();
+                    numAdj = 0;
+                    for (k=0; k<adjHexes.length; k++) {
+                        if (adjHexes[k] != null) {
+                            if (adjHexes[k].colour == this.enemy) {
+                                numAdj += 1;
+                            }
+                        }
+                    }
+                    if (numAdj > 0) {
+                        count -= 1;
+                    }
+                    if (numAdj == 3) {
+                        count -= 1;
+                    }
+                }
+            }
+        }
+        return count;
+    }
+
+    // Method for discouraging corner moves; they kind of suck for the most part
+    private float cornerSucks(Board board) {
+        if (board.rows[0][0].colour == this.colour ||
+            board.rows[board.dimension-1][0].colour == this.colour ||
+            board.rows[0][board.dimension-1].colour == this.colour ||
+            board.rows[board.rows.length-1][0].colour == this.colour ||
+            board.rows[board.dimension-1][board.rows.length-1].colour == this.colour ||
+            board.rows[board.rows.length-1][board.dimension-1].colour == this.colour ) {
+            return -1;
+        }
+        return 0;
     }
 }
