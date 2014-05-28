@@ -2,8 +2,9 @@ package fencemaster;
 
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Scanner;
 
-public class Kembles implements Player, Piece {
+public class Human implements Player, Piece {
 	
 	Board board;
 	int colour, enemy;
@@ -13,7 +14,7 @@ public class Kembles implements Player, Piece {
 	static int TRACKEDMOVES = 30;
 	int[] searchrange_y;
 	int[] searchrange_x;
-	int SEARCHRADIUS = 0;
+	static int SEARCHRADIUS = 1;
 	
 
 	@Override
@@ -62,8 +63,8 @@ public class Kembles implements Player, Piece {
 		else this.enemy = WHITE;
 		this.nummoves = 0;
 		this.library = new Move[TRACKEDMOVES];
-		this.searchrange_y = new int[board.dimension*2-1+SEARCHRADIUS*2];
-		this.searchrange_x = new int[board.dimension*2-1+SEARCHRADIUS*2];
+		this.searchrange_y = new int[board.dimension*2+1];
+		this.searchrange_x = new int[board.dimension*2+1];
 		int i;
 		for (i = 0; i < board.dimension*2-1; i++) {
 			searchrange_y[i] = -1;
@@ -74,40 +75,9 @@ public class Kembles implements Player, Piece {
 
 	@Override
 	public Move makeMove() {
-	int i, j;
-	float current, best = -10000;
-	Board testboard = board.clone();
-	Move choice = new Move(colour, false, -1, -1);
-	int depth = 2;
-	if (nummoves < 5) {
-		depth = 0;
-	}
-	if (nummoves < 7) {
-		depth = 1;
-	}
-	if (nummoves > 30) {
-		depth = 2;
-	}
-	if (board.numHexes - nummoves < 15) {
-		depth = 4;
-	}
-	for (i = 0; i < testboard.rows.length; i++) {
-		for (j = 0; j < testboard.rows[i].length; j++) {
-			if (testboard.rows[i][j].colour == EMPTY) {
-				current = minimax(testboard.applyMove(i, j, colour),false, this.nummoves, -1000, 1000, depth);
-				if (current > best) {
-                    choice.Row = i;
-                    choice.Col = j;
-                    best = current;
-                }
-				testboard = board.clone();
-			}
-		}
-	}
-		this.nummoves += 1;
-		board.rows[choice.Row][choice.Col] = new Hex (choice.Row,choice.Col,choice.P,board);
-		updateSearchrange(choice);
-		return choice;
+	Scanner input = new Scanner(System.in);
+	int col = Scanner.nextInt();
+	Move choice = new Move(colour, false, Scanner.nextInt(),Scanner.nextInt());
 	}
 
 	@Override
@@ -118,15 +88,12 @@ public class Kembles implements Player, Piece {
 		if (!(m.P == BLACK || m.P == WHITE)) {
 			return -1;
 		}
-		if (nummoves != 1 && m.IsSwap) {
-			return -1;
-		}
 		/* Deliberately not checking to see if the opponent is using pieces
 		 * of his assigned colour; if he wants to make moves that help me,
 		 * that's fine by me.
 		 */
 		if (board.rows[m.Row][m.Col].colour != EMPTY && !m.IsSwap) {
-			return -1;
+			return -1; // Doesn't check to see whether opponent actually can use swap rule
 		}
 		board.rows[m.Row][m.Col] = new Hex (m.Row,m.Col,m.P,board);
 		if (nummoves < TRACKEDMOVES) {
@@ -180,8 +147,8 @@ public class Kembles implements Player, Piece {
             loop:
 			for (i = 0; i < testboard.rows.length; i++) {
 				for (j = 0; j < testboard.rows[i].length; j++) {
-					//if (Arrays.binarySearch(searchrange_y, i) < 0) return -1000;
-					//if (Arrays.binarySearch(searchrange_x, j) < 0) return -1000;
+					if (Arrays.binarySearch(searchrange_y, i) < 0) return -1000;
+					if (Arrays.binarySearch(searchrange_x, j) < 0) return -1000;
 					if (testboard.rows[i][j].colour == EMPTY) {
 						alpha = minimax(nextboard.applyMove(i, j, colour), false, nummoves +1, alpha, beta, depth-1);
 						if (alpha >= beta) {
@@ -196,8 +163,8 @@ public class Kembles implements Player, Piece {
             loop:
             for (i = 0; i < testboard.rows.length; i++) {
                 for (j = 0; j < testboard.rows[i].length; j++) {
-                	//if (Arrays.binarySearch(searchrange_y, i) < 0) return -1000;
-                	//if (Arrays.binarySearch(searchrange_x, j) < 0) return -1000;
+                	if (Arrays.binarySearch(searchrange_y, i) < 0) return -1000;
+                	if (Arrays.binarySearch(searchrange_x, j) < 0) return -1000;
                     if (testboard.rows[i][j].colour == EMPTY) {
                         beta = minimax(nextboard.applyMove(i, j, enemy), true, nummoves +1, alpha, beta, depth-1);
                         if (alpha >= beta) {
@@ -335,13 +302,13 @@ public class Kembles implements Player, Piece {
     
     private void updateSearchrange(Move input) {
     	int i;
-    	for (i = -SEARCHRADIUS; i <= SEARCHRADIUS; i++) {
+    	for (i = -1; i < 2; i++) {
     		if (Arrays.binarySearch(searchrange_y, input.Row + i) < 0) {
-    			searchrange_y[SEARCHRADIUS + i] = input.Row;
+    			searchrange_y[1 + i] = input.Row;
     			Arrays.sort(searchrange_y);
     		}
     		if (Arrays.binarySearch(searchrange_x, input.Col + i) < 0) {
-    			searchrange_x[SEARCHRADIUS + i] = input.Col;
+    			searchrange_x[1 + i] = input.Col;
     			Arrays.sort(searchrange_x);
     		}
     	}
