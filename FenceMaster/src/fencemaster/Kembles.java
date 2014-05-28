@@ -10,10 +10,10 @@ public class Kembles implements Player, Piece {
 
 	@Override
 	public int getWinner() {
-		return testBoard(board, nummoves);
+		return testWin(board, nummoves);
 	}
 	
-	private int testBoard(Board input, int nummoves) {
+	private int testWin(Board input, int nummoves) {
 		boolean white = false;
 		boolean black = false;
         if (input.findLoop(board, 'B')) {
@@ -124,7 +124,7 @@ public class Kembles implements Player, Piece {
 	private float minimax(Board testboard, boolean max, int nummoves, float alpha, float beta, int depth) {
 		//testboard.output();
         // Here we want to keep exploring deeper until we either hit a terminal state or reach a certain depth level
-		if ((testBoard(testboard, nummoves) != INVALID) || depth == 0) {
+		if ((testWin(testboard, nummoves) != INVALID) || depth == 0) {
 			return utility(testboard, nummoves);
 		}
 		int i, j;
@@ -162,7 +162,7 @@ public class Kembles implements Player, Piece {
 	}
 	
 	private float utility(Board board, int nummoves) {
-		int state = testBoard(board, nummoves);
+		int state = testWin(board, nummoves);
 
         // First see if the current board state is terminal.
         if (state == this.colour) {
