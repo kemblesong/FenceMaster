@@ -61,12 +61,16 @@ public class Kembles implements Player, Piece {
 	int i, j;
 	float current, best = -10000;
 	Board testboard = board.clone();
-	Move choice = new Move();
+	Move choice = new Move(colour, false, -1, -1);
 	for (i = 0; i < testboard.rows.length; i++) {
 		for (j = 0; j < testboard.rows[i].length; j++) {
 			if (testboard.rows[i][j].colour == EMPTY) {
-				current = minimax(testboard.applyMove(i, j, colour),false, this.nummoves);
-				if (current > best) choice = new Move(colour, false, i, j);
+				current = minimax(testboard.applyMove(i, j, colour),false, this.nummoves, -1000, 1000, 4);
+				if (current > best) {
+                    choice.Row = i;
+                    choice.Col = j;
+                    best = current;
+                }
 				testboard = board.clone();
 			}
 		}
@@ -106,52 +110,123 @@ public class Kembles implements Player, Piece {
 			output.println();
 		}
 	}
-	
-	private float minimax(Board testboard, boolean max, int nummoves) {
-		testboard.output();
-		if (testBoard(testboard, nummoves) != INVALID) {
+
+    /**
+     * Minimax search tree. Does it's thing. You know, the things.
+     * @param testboard the board state in which the minimax search is being applied to
+     * @param max if the current level is MAX or not
+     * @param nummoves number of moves?
+     * @param alpha best value for MAX found so far, initially -infinity
+     * @param beta best value for MIN found so far, initially +infinity
+     * @param depth set the maximum depth to explore in minimax tree in the initial method call
+     * @return returns a score based on utiilty
+     */
+	private float minimax(Board testboard, boolean max, int nummoves, float alpha, float beta, int depth) {
+		//testboard.output();
+        // Here we want to keep exploring deeper until we either hit a terminal state or reach a certain depth level
+		if ((testBoard(testboard, nummoves) != INVALID) || depth == 0) {
 			return utility(testboard, nummoves);
 		}
 		int i, j;
 		Board nextboard = testboard.clone();
-		float util = 0, ideal = 0;
+
 		if (max) {
+            loop:
 			for (i = 0; i < testboard.rows.length; i++) {
 				for (j = 0; j < testboard.rows[i].length; j++) {
 					if (testboard.rows[i][j].colour == EMPTY) {
-						util = minimax(nextboard.applyMove(i, j, colour), false, nummoves +1);
-						if (util > ideal) {
-							ideal = util;
+						alpha = minimax(nextboard.applyMove(i, j, colour), false, nummoves +1, alpha, beta, depth-1);
+						if (alpha >= beta) {
+							break loop;
 						}
 						nextboard = testboard;
 					}
 				}
 			}
-			return ideal;
-		}
-		for (i = 0; i < testboard.rows.length; i++) {
-			for (j = 0; j < testboard.rows[i].length; j++) {
-				if (testboard.rows[i][j].colour == EMPTY) {
-					util = minimax(nextboard.applyMove(i, j, enemy), true, nummoves +1);
-					if (util < ideal) {
-						ideal = util;
-					}
-					nextboard = testboard.clone();
-				}
-			}
-		}
-		return ideal;
+			return alpha;
+        } else {
+            loop:
+            for (i = 0; i < testboard.rows.length; i++) {
+                for (j = 0; j < testboard.rows[i].length; j++) {
+                    if (testboard.rows[i][j].colour == EMPTY) {
+                        beta = minimax(nextboard.applyMove(i, j, enemy), true, nummoves +1, alpha, beta, depth-1);
+                        if (alpha >= beta) {
+                            break loop;
+                        }
+                        nextboard = testboard.clone();
+                    }
+                }
+            }
+            return beta;
+        }
 	}
 	
 	private float utility(Board board, int nummoves) {
 		int state = testBoard(board, nummoves);
-        int total = 0;
-        if (state == this.colour) {
-            total += 5;
-        } else if (state == this.enemy) {
-            total -= 5;
-        }
 
-        return total;
+        // First see if the current board state is terminal.
+        if (state == this.colour) {
+            return 10;
+        } else if (state == this.enemy) {
+            return -10;
+        }
+        // Otherwise, run these other evaluations
+        int a = countOccupiedEdges(board);
+        int b;
+        int c;
+        return a;
 	}
+
+    /**
+     * The following are a bunch of methods used by the utility method to evaluate the board state
+     */
+
+    // Counts how many of the 6 edges on the board are occupied by one of our pieces, excluding corners.
+    private int countOccupiedEdges(Board board) {
+        int count = 0;
+        Hex currentHex;
+        for (int i=0; i<board.rows[0].length; i++) {
+            currentHex = board.rows[0][i];
+            if ((currentHex.colour == this.colour) && !board.isCorner(currentHex,board.dimension)) {
+                count += 1;
+                break;
+            }
+        }
+        for (int i=0; i<(board.rows.length/2); i++) {
+            currentHex = board.rows[i][0];
+            if ((currentHex.colour == this.colour) && !board.isCorner(currentHex,board.dimension)) {
+                count += 1;
+                break;
+            }
+        }
+        for (int i=(board.rows.length/2); i<board.rows.length; i++) {
+            currentHex = board.rows[i][0];
+            if ((currentHex.colour == this.colour) && !board.isCorner(currentHex,board.dimension)) {
+                count += 1;
+                break;
+            }
+        }
+        for (int i=0; i<(board.rows.length/2); i++) {
+            currentHex = board.rows[i][board.rows[i].length-1];
+            if ((currentHex.colour == this.colour) && !board.isCorner(currentHex,board.dimension)) {
+                count += 1;
+                break;
+            }
+        }
+        for (int i=(board.rows.length/2); i<board.rows.length; i++) {
+            currentHex = board.rows[i][board.rows[i].length-1];
+            if ((currentHex.colour == this.colour) && !board.isCorner(currentHex,board.dimension)) {
+                count += 1;
+                break;
+            }
+        }
+        for (int i=0; i<board.rows[0].length; i++) {
+            currentHex = board.rows[board.rows.length-1][i];
+            if ((currentHex.colour == this.colour) && !board.isCorner(currentHex,board.dimension)) {
+                count += 1;
+                break;
+            }
+        }
+        return count;
+    }
 }
