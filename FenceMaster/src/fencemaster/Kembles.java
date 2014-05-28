@@ -7,6 +7,7 @@ public class Kembles implements Player, Piece {
 	Board board;
 	int colour, enemy;
 	int nummoves;
+	Move[] library;
 
 	@Override
 	public int getWinner() {
@@ -62,10 +63,23 @@ public class Kembles implements Player, Piece {
 	float current, best = -10000;
 	Board testboard = board.clone();
 	Move choice = new Move(colour, false, -1, -1);
+	int depth = 2;
+	if (nummoves < 5) {
+		depth = 0;
+	}
+	if (nummoves < 7) {
+		depth = 1;
+	}
+	if (nummoves > 30) {
+		depth = 2;
+	}
+	if (board.numHexes - nummoves < 15) {
+		depth = 4;
+	}
 	for (i = 0; i < testboard.rows.length; i++) {
 		for (j = 0; j < testboard.rows[i].length; j++) {
 			if (testboard.rows[i][j].colour == EMPTY) {
-				current = minimax(testboard.applyMove(i, j, colour),false, this.nummoves, -1000, 1000, 2);
+				current = minimax(testboard.applyMove(i, j, colour),false, this.nummoves, -1000, 1000, depth);
 				if (current > best) {
                     choice.Row = i;
                     choice.Col = j;
@@ -96,7 +110,7 @@ public class Kembles implements Player, Piece {
 			return -1; // Doesn't check to see whether opponent actually can use swap rule
 		}
 		board.rows[m.Row][m.Col] = new Hex (m.Row,m.Col,m.P,board);
-		this.nummoves += 1;
+		if (!m.IsSwap)this.nummoves += 1;
 		return 0;
 	}
 
@@ -124,8 +138,18 @@ public class Kembles implements Player, Piece {
 	private float minimax(Board testboard, boolean max, int nummoves, float alpha, float beta, int depth) {
 		//testboard.output();
         // Here we want to keep exploring deeper until we either hit a terminal state or reach a certain depth level
-		if ((testWin(testboard, nummoves) != INVALID) || depth == 0) {
-			return utility(testboard, nummoves);
+		int state = testWin(testboard, nummoves);
+		if (state == EMPTY) {
+			return 0;
+		}
+		else if (state == colour) {
+			return 1000;
+		}
+		else if (state == enemy) {
+			return -1000;
+		}
+		else if (depth == 0) {
+			return utility(testboard);
 		}
 		int i, j;
 		Board nextboard = testboard.clone();
@@ -161,16 +185,8 @@ public class Kembles implements Player, Piece {
         }
 	}
 	
-	private float utility(Board board, int nummoves) {
-		int state = testWin(board, nummoves);
+	private float utility(Board board) {
 
-        // First see if the current board state is terminal.
-        if (state == this.colour) {
-            return 100;
-        } else if (state == this.enemy) {
-            return -100;
-        }
-        // Otherwise, run these other evaluations
         float a = countOccupiedEdges(board);
         float b = countAdjacentPieces(board);
         float c = cornerSucks(board);

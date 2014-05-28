@@ -303,11 +303,11 @@ public class Board implements Piece, Cloneable{
      */
     boolean isCorner(Hex hex, int boardDimension) {
         return (hex.x == 0 && hex.y == 0) ||
-                (hex.x == boardDimension - 1 && hex.y == 0) ||
-                (hex.x == 0 && hex.y == boardDimension - 1) ||
-                (hex.x == 2 * boardDimension - 2 && hex.y == boardDimension - 1) ||
-                (hex.x == 0 && hex.y == 2 * boardDimension - 2) ||
-                (hex.x == boardDimension - 1 && hex.y == 2 * boardDimension - 2);
+                (hex.x == this.dimension - 1 && hex.y == 0) ||
+                (hex.x == 0 && hex.y == this.dimension - 1) ||
+                (hex.x == 2 * this.dimension - 2 && hex.y == this.dimension - 1) ||
+                (hex.x == 0 && hex.y == 2 * this.dimension - 2) ||
+                (hex.x == this.dimension - 1 && hex.y == 2 * this.dimension - 2);
     }
     
     /**
@@ -338,6 +338,7 @@ public class Board implements Piece, Cloneable{
     	return this;
     }
     
+    @Override
     protected Board clone() {
     	Board newboard = new Board(this.dimension);
     	int i, j;
