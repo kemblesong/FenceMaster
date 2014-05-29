@@ -1,19 +1,12 @@
 package fencemaster;
 
 import java.io.PrintStream;
-import java.util.Arrays;
 
 public class Kembles implements Player, Piece {
 	
 	Board board;
 	int colour, enemy;
 	int nummoves;
-	
-	Move[] library;
-	static int TRACKEDMOVES = 30;
-	int[] searchrange_y;
-	int[] searchrange_x;
-	int SEARCHRADIUS = 0;
 	
 
 	@Override
@@ -61,14 +54,6 @@ public class Kembles implements Player, Piece {
 		if(p == WHITE) this.enemy = BLACK;
 		else this.enemy = WHITE;
 		this.nummoves = 0;
-		this.library = new Move[TRACKEDMOVES];
-		this.searchrange_y = new int[board.dimension*2-1+SEARCHRADIUS*2];
-		this.searchrange_x = new int[board.dimension*2-1+SEARCHRADIUS*2];
-		int i;
-		for (i = 0; i < board.dimension*2-1; i++) {
-			searchrange_y[i] = -1;
-			searchrange_x[i] = -1;
-		}
 		return 0;
 	}
 
@@ -78,17 +63,19 @@ public class Kembles implements Player, Piece {
 	float current, best = -10000;
 	Board testboard = board.clone();
 	Move choice = new Move(colour, false, -1, -1);
-	int depth = 2;
-	if (nummoves < 5) {
-		depth = 0;
-	}
-	if (nummoves < 7) {
+	// Set search depth depending on how many moves have been made
+	// The fewer possible moves, the deeper we can search
+	int depth = 0;
+	if (nummoves > 5) {
 		depth = 1;
 	}
-	if (nummoves > 30) {
+	if (board.numHexes - nummoves < 20) {
 		depth = 2;
 	}
 	if (board.numHexes - nummoves < 15) {
+		depth = 3;
+	}
+	if (board.numHexes - nummoves < 10) {
 		depth = 4;
 	}
 	for (i = 0; i < testboard.rows.length; i++) {
@@ -106,7 +93,6 @@ public class Kembles implements Player, Piece {
 	}
 		this.nummoves += 1;
 		board.rows[choice.Row][choice.Col] = new Hex (choice.Row,choice.Col,choice.P,board);
-		updateSearchrange(choice);
 		return choice;
 	}
 
@@ -129,18 +115,28 @@ public class Kembles implements Player, Piece {
 			return -1;
 		}
 		board.rows[m.Row][m.Col] = new Hex (m.Row,m.Col,m.P,board);
-		if (nummoves < TRACKEDMOVES) {
-			library[nummoves] = m;
-		}
 		if (!m.IsSwap)this.nummoves += 1;
-		updateSearchrange(m);
 		return 0;
 	}
 
 	@Override
 	public void printBoard(PrintStream output) {
-		int i, j;
+		int i, j, q;
+		// Add spaces to make the board line up, then print the board itself
 		for (i = 0; i < board.rows.length; i++) {
+			// If before the middle of the board
+			if (i < board.dimension - 1) {
+				// Add this many spaces
+				for (q = 0; q < board.dimension - i - 1; q++) {
+					output.print(" ");
+				}
+			}
+			else {
+				for (q = 0; q < i - board.dimension + 1; q++) {
+					output.print(" ");
+				}
+			}
+			// Print the board itself
 			for (j = 0; j < board.rows[i].length; j++) {
 				output.print(board.rows[i][j] + " ");
 			}
@@ -180,8 +176,6 @@ public class Kembles implements Player, Piece {
             loop:
 			for (i = 0; i < testboard.rows.length; i++) {
 				for (j = 0; j < testboard.rows[i].length; j++) {
-					//if (Arrays.binarySearch(searchrange_y, i) < 0) return -1000;
-					//if (Arrays.binarySearch(searchrange_x, j) < 0) return -1000;
 					if (testboard.rows[i][j].colour == EMPTY) {
 						alpha = minimax(nextboard.applyMove(i, j, colour), false, nummoves +1, alpha, beta, depth-1);
 						if (alpha >= beta) {
@@ -196,8 +190,6 @@ public class Kembles implements Player, Piece {
             loop:
             for (i = 0; i < testboard.rows.length; i++) {
                 for (j = 0; j < testboard.rows[i].length; j++) {
-                	//if (Arrays.binarySearch(searchrange_y, i) < 0) return -1000;
-                	//if (Arrays.binarySearch(searchrange_x, j) < 0) return -1000;
                     if (testboard.rows[i][j].colour == EMPTY) {
                         beta = minimax(nextboard.applyMove(i, j, enemy), true, nummoves +1, alpha, beta, depth-1);
                         if (alpha >= beta) {
@@ -216,10 +208,10 @@ public class Kembles implements Player, Piece {
         float a = countOccupiedEdges(board);
         float b = countAdjacentPieces(board);
         float c = cornerSucks(board);
-        return a+b+c;
+        return 4*a+b+3*c;
 	}
 
-    /**
+    /*
      * The following are a bunch of methods used by the utility method to evaluate the board state
      */
 
@@ -275,7 +267,6 @@ public class Kembles implements Player, Piece {
     // Counts how many adjacent pieces of our colour are next to pieces of our colour
     // +1 score if our hex has adjacent pieces
     // -1 score if an enemy hex has adjacent pieces
-    // Bonus points for exactly 3 (for tripod construction)
     private float countAdjacentPieces(Board board) {
         int count = 0;
         int i, j, k;
@@ -295,9 +286,6 @@ public class Kembles implements Player, Piece {
                     if (numAdj > 0) {
                         count += 1;
                     }
-                    if (numAdj == 3) {
-                        count += 1;
-                    }
                 } else if (board.rows[i][j].colour == this.enemy) {
                     Hex[] adjHexes = board.rows[i][j].getAdjacent();
                     numAdj = 0;
@@ -309,9 +297,6 @@ public class Kembles implements Player, Piece {
                         }
                     }
                     if (numAdj > 0) {
-                        count -= 1;
-                    }
-                    if (numAdj == 3) {
                         count -= 1;
                     }
                 }
@@ -333,17 +318,4 @@ public class Kembles implements Player, Piece {
         return 0;
     }
     
-    private void updateSearchrange(Move input) {
-    	int i;
-    	for (i = -SEARCHRADIUS; i <= SEARCHRADIUS; i++) {
-    		if (Arrays.binarySearch(searchrange_y, input.Row + i) < 0) {
-    			searchrange_y[SEARCHRADIUS + i] = input.Row;
-    			Arrays.sort(searchrange_y);
-    		}
-    		if (Arrays.binarySearch(searchrange_x, input.Col + i) < 0) {
-    			searchrange_x[SEARCHRADIUS + i] = input.Col;
-    			Arrays.sort(searchrange_x);
-    		}
-    	}
-    }
 }
