@@ -17,17 +17,25 @@ public class Kembles implements Player, Piece {
 	private int testWin(Board input, int nummoves) {
 		boolean white = false;
 		boolean black = false;
-        if (input.findLoop(board, 'B')) {
+        if (input.findLoop(board, BLACK)) {
             black = true;
+            System.out.println("Black Loop");
+            board.output();
         }
-        if (input.findLoop(board, 'W')) {
+        if (input.findLoop(board, WHITE)) {
             white = true;
+            System.out.println("White Loop");
+            board.output();
         }
-        if (input.findTripod(board, 'B')) {
+        if (input.findTripod(board, BLACK)) {
             black = true;
+            System.out.println("Black Tripod");
+            board.output();
         }
-        if (input.findTripod(board, 'W')) {
+        if (input.findTripod(board, WHITE)) {
             white = true;
+            System.out.println("White Tripod");
+            board.output();
         }
 		if (white)
 		{

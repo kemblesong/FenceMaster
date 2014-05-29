@@ -25,6 +25,8 @@ public class Board implements Piece, Cloneable{
     Hex[][] rows;
     int dimension;
     int numHexes;
+    
+    int edgecount;
 
     public static void main(String[] args) {
         Board thisBoard = fillBoard();
@@ -354,12 +356,26 @@ public class Board implements Piece, Cloneable{
     
     // debug function
     public void output() {
-		int i, j;
+		int i, j, q;
+		// Add spaces to make the board line up, then print the board itself
 		for (i = 0; i < this.rows.length; i++) {
+			// If before the middle of the board
+			if (i < this.dimension - 1) {
+				// Add this many spaces
+				for (q = 0; q < this.dimension - i - 1; q++) {
+					System.out.print(" ");
+				}
+			}
+			else {
+				for (q = 0; q < i - this.dimension + 1; q++) {
+					System.out.print(" ");
+				}
+			}
+			// Print the board itself
 			for (j = 0; j < this.rows[i].length; j++) {
 				System.out.print(this.rows[i][j] + " ");
 			}
 			System.out.println();
 		}
-	}
+    }
 }
